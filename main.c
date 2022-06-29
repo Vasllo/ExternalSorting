@@ -88,6 +88,18 @@ enum saidaComparar
     MAIORQUE,
     IGUAL
 };
+int comparar(CLIENTE * stl1, char *stl2)
+{
+	int p1 = ((CLIENTE*) stl1)->CodCliente;
+    int p2 = ((CLIENTE*) stl2)->CodCliente;
+
+    if(p1 > p2)
+        return MENORQUE;
+    else if(p1 == p2)
+        return IGUAL;
+    else
+        return MAIORQUE;
+}
 
 int particionar(FILE *f, char *prefix, int memSize)
 {
