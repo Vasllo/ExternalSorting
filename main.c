@@ -10,6 +10,7 @@ typedef struct cliente{
 
     int CodCliente;
     char Nome [25];
+    char data_de_nascmento[11];
 
 
 }CLIENTE;
@@ -24,7 +25,7 @@ void liberarCliente(CLIENTE **fc)
 
 void imprimirCliente(CLIENTE *fc)
 {
-    printf("codigo do cliente: %d\n" "nome do cliente: %s\n" , fc->CodCliente, fc->Nome);
+    printf("codigo do cliente: %d\n nome do cliente: %s\n nascimento: %s\n" , fc->CodCliente, fc->Nome, fc->data_de_nascmento);
 }
 
 int escreverCliente(CLIENTE *fc, FILE *f)
@@ -215,3 +216,4 @@ int particionar(FILE *f, char *prefix, int memSize)
 
 	return geracao_de_particao;
 }
+
