@@ -38,7 +38,7 @@ int escreverCliente(CLIENTE *fc, FILE *f)
 
 CLIENTE *lerCliente(FILE *f)
 {
-    CLIENTE *fc = (CLIENTE)malloc(sizeof(CLIENTE)); // aloca tamanho da struct CLIENTE
+    CLIENTE *fc = (CLIENTE *)malloc(sizeof(CLIENTE)); // aloca tamanho da struct CLIENTE
     if (fread(fc, sizeof(CLIENTE), 1, f) > 0)
         return fc;
     free(fc);
@@ -47,8 +47,8 @@ CLIENTE *lerCliente(FILE *f)
 
 typedef struct stParticionador
 {
-    CLIENTE memoria;
-    CLIENTE reservatorio;
+    CLIENTE **memoria;
+    CLIENTE **reservatorio;
     int r;
     int indReserv;
     int memSize;
@@ -89,7 +89,7 @@ enum saidaComparar
     MAIORQUE,
     IGUAL
 };
-int comparar(CLIENTE * stl1, char *stl2)
+int comparar(CLIENTE *stl1, CLIENTE *stl2)
 {
 	int p1 = ((CLIENTE*) stl1)->CodCliente;
     int p2 = ((CLIENTE*) stl2)->CodCliente;
@@ -143,7 +143,7 @@ int particionar(FILE *f, char *prefix, int memSize)
 							part->r = i;
 
 					// elemento escrito
-					escreverFilme(part->memoria[part->r], fPart);
+					escreverCliente(part->memoria[part->r], fPart);
 					// vai para o proximo
 					while (part->indReserv < memSize)
 					{
@@ -216,4 +216,6 @@ int particionar(FILE *f, char *prefix, int memSize)
 
 	return geracao_de_particao;
 }
+
+
 
