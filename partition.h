@@ -1,215 +1,127 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <ctype.h>
-#include <getopt.h>
+//  Algoritmo de particionamento de arquivos pelo algoritmo de seleção natural
 
-#define NOME_DO_ARQUIVO 20
-#define TAMANHO 500
-#define TAMANHO_DATA 11
-#define TAMANHO_NOME 100
+#include "cliente.h"
+#include <math.h>
+#include <string.h>
 
-typedef struct Cliente
-{
-    int codCliente;
-    char nome [TAMANHO_NOME];
-    char dataDeNascimento[TAMANHO_DATA];
-}Cliente;
+#define TAM_NOME_PARTICAO 30
+#define HIGH_VALUE 2147483647
 
-typedef struct dadosDeParticao
-{
-    Cliente **memoria;
-    Cliente **reservatorio;
-    int indiceMemoria;
-    int indiceReservatorio;
-    int tamanhoDeMemoria;
-}infoParticao;
+void particionar (FILE* arquivo, int tamanhoMemoria);
+int valorMinimo (Cliente* clientes, int unidadesEmMemoria);
+void apagarCliente (Cliente* cliente);
+void fprintCliente(FILE* arquivo, Cliente* cliente);
+void freadCliente(FILE* arquivo, Cliente* destino);
 
-enum saidaComparar
-{
-    MENORQUE = -1,
-    MAIORQUE = 0,
-    IGUAL = 1
-};
+//  tamanho de memória é dado em bytes, representa o espaço disponível na RAM
+void particionar (FILE* arquivo, int tamanhoMemoria) {
+    int numeroParticao = 0, posReservatorio = -1, idMinValor = -1, ultimValor = -1, eoflag = 1;
+    char nomeParticao[TAM_NOME_PARTICAO] = {'\0'};
 
-// Desaloca ponteiro cliente
-void liberarCliente(Cliente **cliente)
-{
-    free(*cliente);
-    *cliente = NULL;
-}
+    //  Reservatório precisa ser escrito e lido diversas vezes, e o arquivo deve estar com o ponteiro em seu início
+    FILE* reservatorio = fopen("reservatorio.dat", "w+b");
+    rewind(arquivo);
 
-void imprimirCliente(Cliente *cliente)
-{
-    printf("Dados do cliente:\nCódigo: %d\n Nome: %s\n Data de nascimento: %s\n" , cliente->codCliente, cliente->nome, cliente->dataDeNascimento);
-}
+    //  É calculado o tamanho da estrutura "Cliente" e então calculado quantas destas cabem na memória dada, e então é alocado um array deste tamanho
+    Cliente* clientes = NULL;
+    // Burrice abaixo?
+    int tamanhoStruct = sizeof(clientes->codCliente) + sizeof(clientes->nome) + sizeof(clientes->dataDeNascimento);
+    int unidadesEmMemoria = (int) floor((double)(tamanhoMemoria/tamanhoStruct));
+    clientes = (Cliente*) malloc(sizeof(Cliente)*unidadesEmMemoria);
 
-// Retorno 1 sinaliza sucesso na escrita e 0 falha na escrita
-int escreverCliente(Cliente *cliente, FILE *arquivo)
-{
-	int sucesso = 0;
-	if (cliente && fwrite(cliente, sizeof(Cliente), 1, arquivo))
-		sucesso++;
-    return sucesso;
-}
-
-Cliente *lerCliente(FILE *arquivo)
-{
-    Cliente* cliente = (Cliente*) malloc(sizeof(Cliente));
-    if (fread(cliente, sizeof(Cliente), 1, arquivo))
-        return cliente;
-    free(cliente);
-    return NULL;
-}
-
-infoParticao *criarParticao(int tamanhoDeMemoria)
-{
-    infoParticao *p = (infoParticao *)malloc(sizeof(infoParticao));
-
-    p->memoria = (Cliente **)malloc(sizeof(Cliente *) * tamanhoDeMemoria);
-    p->reservatorio = (Cliente **)malloc(sizeof(Cliente *) * tamanhoDeMemoria);
-    p->indiceReservatorio = 0;
-    p->tamanhoDeMemoria = tamanhoDeMemoria;
-
-    return p;
-}
-
-void liberarParticao(infoParticao **part)
-{
-    infoParticao *aux = *part;
-    for (int i = 0; i < aux->tamanhoDeMemoria; i++)
-    {
-        if (aux->memoria[i] != NULL)
-            liberarCliente(&(aux->memoria[i]));
+    //  Leitura inicial para preencher o array
+    for(int i=0; i<unidadesEmMemoria; i++) {
+        freadCliente(arquivo, &(clientes[i]));
     }
-    free(aux->memoria);
-    free(aux->reservatorio);
-    free(aux);
 
-    *part = NULL;
+    while (eoflag) {
+        //  Geração do nome da partição, arquivo e incremento do número diferenciador da partição
+        sprintf(nomeParticao, "cliente_particao_%d.dat", numeroParticao);
+        FILE* particao = fopen(nomeParticao, "wb");
+        numeroParticao++;
+
+        //  Enquanto o registro não encher, o algoritmo é executado em loop
+        while (1) {
+            idMinValor = valorMinimo(clientes, unidadesEmMemoria);
+
+            //  Verifica se o menor código de cliente em memória é maior que o último salvo na partição de saída, se sim, \
+                salva o cliente partição, atualiza o último valor salvo e apaga o cliente da memória
+            if(clientes[idMinValor].codCliente > ultimValor) {
+                fprintCliente(particao, &(clientes[idMinValor]));
+                ultimValor = clientes[idMinValor].codCliente;
+                apagarCliente(&(clientes[idMinValor]));
+            
+            //  Se não, salva o cliente no reservatório, aumenta a contagem de posição do último item no reservatório \
+                e apaga o cliente da memória
+            } else {
+                fprintCliente(reservatorio, &(clientes[idMinValor]));
+                posReservatorio++;
+                apagarCliente(&(clientes[idMinValor]));
+                if(posReservatorio + 1 >= unidadesEmMemoria) {
+                    break;
+                }
+            }
+            //  Após encontrar o índice com menor código de cliente e salvá-lo na partição de saída, é lida a próxima entrada e colocada na posição deste índice no array \
+                Se não conseguir ler, verifica se chegou ao EOF, ou se houve erro de leitura
+            if(!fread((clientes+idMinValor), tamanhoStruct, 1, arquivo)) {
+                if(feof(arquivo)){
+                    eoflag--;
+                    break;
+                }else{
+                    perror("Erro na leitura do arquivo de entrada");
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
+        //  Salva os clientes restantes na memória em ordem na partição de saída
+        for(int i=0; i < unidadesEmMemoria-1; i++) {
+            idMinValor = valorMinimo(clientes, unidadesEmMemoria);
+            fprintCliente(particao, &(clientes[idMinValor]));
+            apagarCliente(&(clientes[idMinValor]));
+        }
+
+        //  Lê dados do reservatório e armazena na memória
+        for(int i=0; i<unidadesEmMemoria; i++) {
+            freadCliente(reservatorio, &(clientes[i]));
+        }
+
+        //  Reseta a posição do reservatório, último valor e fecha a partição atual
+        posReservatorio = ultimValor = -1;
+        fclose(particao);
+    }
+    fclose(reservatorio);
 }
 
-int comparar(Cliente *cliente1, Cliente *cliente2)
-{
-    if(cliente1->codCliente < cliente2->codCliente)
-		return MENORQUE;
-	else if(cliente1->codCliente == cliente2->codCliente)
-		return IGUAL;
-	else
-		return MAIORQUE;
+//  Encontra o menor código de cliente no array alocado na memória e retorna o índice do cliente com menor código no array
+int valorMinimo (Cliente* clientes, int unidadesEmMemoria) {
+    int indice = -1, valor = HIGH_VALUE;
+
+    for(int i=0; i < unidadesEmMemoria; i++) {
+        if(clientes[i].codCliente < valor) {
+            indice = i;
+            valor = clientes[i].codCliente;
+        }
+    }
+    return indice;
 }
 
-int particionar(FILE *arquivo, char *prefix, int tamanhoDeMemoria)
-{
-	infoParticao *part = criarParticao(tamanhoDeMemoria);
-	int geracao_de_particao = 0;
+//  Apaga os dados do cliente para removê-lo dos possíveis resultados da busca de valor mínimo
+void apagarCliente (Cliente* cliente) {
+    cliente->codCliente = HIGH_VALUE;
+    memset(cliente->nome, '\0', sizeof(cliente->nome));
+    memset(cliente->dataDeNascimento, '\0', sizeof(cliente->dataDeNascimento));
+}
 
-	//ARQUIVO EXISTE?
-	if (arquivo != NULL)
-	{
-		char stringAux[NOME_DO_ARQUIVO];
-		Cliente *aux;
-		FILE *fPart;
+//  Grava os dados de um determinado cliente para um determinado arquivo
+void fprintCliente(FILE* arquivo, Cliente* cliente) {
+    fwrite(&(cliente->codCliente), sizeof(cliente->codCliente), 1, arquivo);
+    fwrite(cliente->nome, sizeof(cliente->nome), 1, arquivo);
+    fwrite(cliente->dataDeNascimento, sizeof(cliente->dataDeNascimento), 1, arquivo);
+}
 
-		// copia os primeiros para a memória
-		for (int i = 0; i < tamanhoDeMemoria; i++)
-			part->memoria[i] = lerCliente(arquivo);
-		while (part->memoria[0] != NULL)
-		{
-			// string para o nome do arquivo
-			sprintf(stringAux, "parts/%s%d.dat", prefix, geracao_de_particao);
-			fPart = fopen(stringAux, "wb");
-			while (part->indiceReservatorio < tamanhoDeMemoria)
-			{
-				// procurar o primeiro elemento
-				part->indiceMemoria = -1;
-				for (int i = 0; i < tamanhoDeMemoria; i++)
-					if (part->memoria[i] != NULL)
-					{
-						part->indiceMemoria = i;
-						break;
-					}
-					
-				// memoria vazia?
-				
-				if (part->indiceMemoria != -1)
-				{
-					// menor elemnto na memoria
-					for (int i = 0; i < tamanhoDeMemoria; i++)
-						if (part->memoria[i] != NULL && comparar(part->memoria[i], part->memoria[part->indiceMemoria]) == MENORQUE)
-							part->indiceMemoria = i;
-
-					// elemento escrito
-					escreverCliente(part->memoria[part->indiceMemoria], fPart);
-					// vai para o proximo
-					while (part->indiceReservatorio < tamanhoDeMemoria)
-					{
-						aux = lerCliente(arquivo);
-						if (aux != NULL)
-						{
-							// menor que o ultimo, vai para o reservatório
-							if (comparar(aux, part->memoria[part->indiceMemoria]) == MENORQUE)
-							{
-								part->reservatorio[part->indiceReservatorio] = aux;
-								part->indiceReservatorio++;
-							}
-							// maior que ultimo substitui
-							else
-							{
-								liberarCliente(&part->memoria[part->indiceMemoria]);
-								part->memoria[part->indiceMemoria] = aux;
-								break;
-							}
-						}
-						// se ultimo elemento for NULL, acabamos de ler o arquivo
-						else
-						{
-							liberarCliente(&part->memoria[part->indiceMemoria]);
-							break;
-						}
-					}
-				}
-				// não tendo elemento na memoria sai do loop
-				else
-					break;
-			}
-			// reservatorio cheio , remove ultimo elemento
-			if (part->indiceReservatorio == tamanhoDeMemoria && part->memoria[part->indiceMemoria] != NULL)
-				liberarCliente(&part->memoria[part->indiceMemoria]);
-
-			// escreve elementos restante na run
-			do
-			{
-				// achar o primeiro elemento na memoria
-				part->indiceMemoria = -1;
-				for (int i = 0; i < tamanhoDeMemoria; i++)
-					if (part->memoria[i] != NULL)
-					{
-						part->indiceMemoria = i;
-						break;
-					}
-				// achar o menor elemento na memoria
-				if (part->indiceMemoria != -1)
-				{
-					for (int i = 0; i < tamanhoDeMemoria; i++)
-						if (part->memoria[i] != NULL && comparar(part->memoria[i], part->memoria[part->indiceMemoria]) == MENORQUE)
-							part->indiceMemoria = i;
-					// ecrever e liberar o menor
-					escreverCliente(part->memoria[part->indiceMemoria], fPart);
-					liberarCliente(&part->memoria[part->indiceMemoria]);
-				}
-			} while (part->indiceMemoria != -1);
-
-			// fechar o arquivo e copia os dados do reservatorio para a memoria
-			fclose(fPart);
-			for (int i = 0; i < part->indiceReservatorio; i++)
-				part->memoria[i] = part->reservatorio[i];
-			part->indiceReservatorio = 0;
-			geracao_de_particao++;
-		}
-	}
-
-	liberarParticao(&part);
-
-	return geracao_de_particao;
+//  Lê os dados de um determinado arquivo para um determinado cliente
+void freadCliente(FILE* arquivo, Cliente* destino){
+    fread(&(destino->codCliente), sizeof(destino->codCliente), 1, arquivo);
+    fread(destino->nome, sizeof(destino->nome), 1, arquivo);
+    fread(destino->dataDeNascimento, sizeof(destino->dataDeNascimento), 1, arquivo);
 }
