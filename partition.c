@@ -156,7 +156,7 @@ void classificacao_interna(FILE *arq, Lista *nome_arquivos_saida, int M, int nCl
     }
 }
 
-void selecao_natural(FILE *arq, Lista *nome_arquivos_saida, int M, int nFunc, int n, int* nParticoes)
+void selecao_natural(FILE *arq, Lista *nome_arquivos_saida, int M, int nCli, int n, int* nParticoes)
 {
     Lista* nomes = nome_arquivos_saida;
     Lista* nome_part = nomes;
@@ -164,7 +164,7 @@ void selecao_natural(FILE *arq, Lista *nome_arquivos_saida, int M, int nFunc, in
     int cursorPart = 0;
     int totalLidos = 0;
 
-    TFunc** v = malloc(M * sizeof(TFunc*));
+    Cliente** v = malloc(M * sizeof(Cliente*));
 
     FILE* res = fopen("reservatorio.dat", "w+");
     int cursorRes = 0;
@@ -176,7 +176,7 @@ void selecao_natural(FILE *arq, Lista *nome_arquivos_saida, int M, int nFunc, in
     // M registros do arquivo para a memoria
     while (i < M && (!feof(arq)))
     {
-        v[i] = getFunc(arq, &totalLidos);
+        v[i] = getCliente(arq, &totalLidos);
         controleVet[i] = false;
         i++;
     }
@@ -241,7 +241,7 @@ void selecao_natural(FILE *arq, Lista *nome_arquivos_saida, int M, int nFunc, in
                 if (!feof(arq))
                 {
                     // Troca o registro já particionado com próximo registro do arquivo
-                    v[menor] = getFunc(arq, &totalLidos);
+                    v[menor] = getCliente(arq, &totalLidos);
 
                     // Se for maior do que o registro da partição
                     // grava na partição normalmente
