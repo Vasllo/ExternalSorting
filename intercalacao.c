@@ -24,7 +24,7 @@ void intercalacao_basico(char *nome_arquivo_saida, int num_p, Lista *nome_partic
         TVet v[num_p];
 
         //abre arquivos das particoes, colocando variavel de arquivo no campo f do vetor
-        //e primeiro funcionario do arquivo no campo func do vetor
+        //e primeiro cliente do arquivo no campo func do vetor
         for (int i = 0; i < num_p; i++)
         {
             v[i].f = fopen(nome_particoes->nome, "rb");
@@ -32,7 +32,7 @@ void intercalacao_basico(char *nome_arquivo_saida, int num_p, Lista *nome_partic
             if (v[i].f != NULL)
             {
                 fseek(v[i].f, v[i].aux_p * tamanho_registro(), SEEK_SET);
-                Cliente *f = le_funcionario(v[i].f);
+                Cliente *f = le_cliente(v[i].f);
                 if (f == NULL)
                 {
                     //arquivo estava vazio
