@@ -14,7 +14,7 @@ typedef struct Cliente {
 }Cliente;
 
 
-Cliente *cliente(int codCliente, char *nome, char *cpf, char *data_nascimento);
+Cliente *cliente(int codCliente, char *nome, char *data_nascimento);
 
 
 int tamanho_registro();
