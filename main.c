@@ -136,9 +136,7 @@ int main()
     }
     free(vetPilhas);
 
-    fclose(arqIndicePrimario);
-    fclose(arqIndicePrimarioNaoOrdenado);
-    fclose(arqArvoreBinariaExterna);
+   
     fclose(arq);
 
     return 0;
