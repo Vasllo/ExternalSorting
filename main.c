@@ -3,7 +3,6 @@
 #include "lista.h"
 #include "particoes.h"
 #include "intercalacao.h"
-#include "arvore_binaria.h"
 
 int menu()
 {
