@@ -48,7 +48,7 @@ Cliente *le_cliente(FILE *in)
     return cli;
 }
 
-void cria_base_dados_funcionarios(FILE *arq, FILE *arqIndicePrimario, FILE *arqIndicePrimarioNaoOrdenado, int nCli)
+void cria_base_dados_cliente(FILE *arq, FILE *arqIndicePrimario, FILE *arqIndicePrimarioNaoOrdenado, int nCli)
 {
 
     int codCliente;
