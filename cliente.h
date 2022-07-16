@@ -34,10 +34,10 @@ void cria_base_dados_cliente(FILE* arq, FILE* arqIndicePrimario, FILE* arqIndice
 
 void cria_base_dados_cliente_teste(FILE* arq, FILE* arqIndicePrimario,  FILE* arqIndicePrimarioNaoOrdenado, int nCli);
 
-/
+
 void imprime_base_dados_cliente(FILE *arq, int nCli);
 
-/
+
 void imprime_indice_primario_cliente(FILE *arqIndicePrimario, int nCli);
 
 #endif
