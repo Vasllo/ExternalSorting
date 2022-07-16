@@ -9,10 +9,10 @@
 #include "lista.h"
 
 
-void classificacao_interna(FILE *arq, Lista *nome_arquivos_saida, int M, int nFunc);
+void classificacao_interna(FILE *arq, Lista *nome_arquivos_saida, int M, int nCli);
 
 
-void selecao_natural(FILE *arq, Lista *nome_arquivos_saida, int M, int nFunc, int n, int* nParticoes);
+void selecao_natural(FILE *arq, Lista *nome_arquivos_saida, int M, int nCli, int n, int* nParticoes);
 
 
 Cliente* getCliente(FILE* arq, int* contLidos);
