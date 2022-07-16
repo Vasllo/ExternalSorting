@@ -137,7 +137,7 @@ void imprime_chaves_arvore_binaria_externa(FILE *arq_saida)
     printf("\n\nChave, pEsq, pDir\n");
     while (fread(&aux, sizeof(TNoAX), 1, arq_saida) == 1)
     {
-        printf("%d, %ld, %ld\n", aux.item.cod, aux.pEsq, aux.pDir);
+        printf("%d, %ld, %ld\n", aux.item.codCliente, aux.pEsq, aux.pDir);
     }
     printf("\n");
 }
@@ -152,7 +152,7 @@ void inserir_recursivo_arvore_binaria_externa(long int localraiz, Cliente p, FIL
 
     if (fread(&aux, sizeof(TNoAX), 1, arq) == 1)
     {
-        if (aux.item.cod > p.cod)
+        if (aux.item.codCliente > p.codCliente)
         { //inserção à esquerda
 
             if (aux.pEsq == SEM_FILHO)
