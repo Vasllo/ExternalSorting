@@ -9,7 +9,6 @@
 
 void particionar (FILE* arquivo, int tamanhoMemoria);
 int valorMinimo (Cliente* clientes, int unidadesEmMemoria);
-void limparCliente (Cliente* cliente);
 
 //  tamanho de memória é dado em bytes, representa o espaço disponível na memória principal
 void particionar (FILE* arquivo, int tamanhoMemoria) {
@@ -33,7 +32,7 @@ void particionar (FILE* arquivo, int tamanhoMemoria) {
 
     while (eoflag) {
         //  Geração do nome da partição, arquivo e incremento do número diferenciador da partição
-        sprintf(nomeParticao, "cliente_particao_%d.dat", numeroParticao);
+        sprintf(nomeParticao, "clientes_particao_%d.dat", numeroParticao);
         FILE* particao = fopen(nomeParticao, "wb");
         numeroParticao++;
 
@@ -46,14 +45,12 @@ void particionar (FILE* arquivo, int tamanhoMemoria) {
             if(clientes[idMinValor].codCliente > ultimValor) {
                 fprintCliente(particao, &(clientes[idMinValor]));
                 ultimValor = clientes[idMinValor].codCliente;
-                limparCliente(&(clientes[idMinValor]));
                 
             //  Se não, salva o cliente no reservatório, aumenta a contagem de posições ocupadas do reservatório \
                 e limpa o cliente da memória
             } else {
                 fprintCliente(reservatorio, &(clientes[idMinValor]));
                 posReservatorio++;
-                limparCliente(&(clientes[idMinValor]));
                 if(posReservatorio + 1 == unidadesEmMemoria) {
                     break;
                 }
@@ -74,7 +71,6 @@ void particionar (FILE* arquivo, int tamanhoMemoria) {
         for(int i=0; i<unidadesEmMemoria-1; i++) {
             idMinValor = valorMinimo(clientes, unidadesEmMemoria);
             fprintCliente(particao, &(clientes[idMinValor]));
-            limparCliente(&(clientes[idMinValor]));
         }
 
         //  Reseta o ponteiro do reservatório, lê os dados e os armazena na memória
@@ -104,11 +100,4 @@ int valorMinimo (Cliente* clientes, int unidadesEmMemoria) {
         }
     }
     return indice;
-}
-
-//  Apaga os dados do cliente para removê-lo dos possíveis resultados da busca de valor mínimo
-void limparCliente (Cliente* cliente) {
-    cliente->codCliente = MAX_INT;
-    memset(cliente->nome, '\0', sizeof(cliente->nome));
-    memset(cliente->dataDeNascimento, '\0', sizeof(cliente->dataDeNascimento));
 }
