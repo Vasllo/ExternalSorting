@@ -26,7 +26,7 @@ void intercalar (arvoreVencedor* raiz);
 
 void print2D(arvoreVencedor *root);
 
-#define COUNT 20
+#define COUNT 10
 // Function to print binary tree in 2D
 // It does reverse inorder traversal
 void print2DUtil(arvoreVencedor *root, int space)
@@ -190,12 +190,6 @@ void _adicionarNos (arvoreVencedor* raiz, arvoreVencedor** nos, int nSubArvores)
         j+=2;
     }
 
-    for(int i=0;i<nNos+1; i++){
-        printf("=============================================================================");
-        print2D(novosNos[i]);
-        printf("=============================================================================");
-    }
-
     _adicionarNos (raiz, novosNos, nNos);
 
     free(novosNos);
@@ -296,9 +290,6 @@ void intercalar (arvoreVencedor* raiz) {
 
     while(raiz->vencedor != HIGH_VALUE) {
         aux = atualizarFolha(raiz);
-        printf("-----------------------------------------------------------------------------");
-        print2D(raiz);
-        printf("-----------------------------------------------------------------------------");
         fwriteCliente(saida, aux);
     }
     fclose(saida);
