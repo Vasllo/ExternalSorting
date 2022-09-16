@@ -58,6 +58,7 @@ void particionar (FILE* arquivo, int tamanhoMemoria) {
             if(!fread((clientes+idMinValor), tamanhoStruct, 1, arquivo)) {
                 if(feof(arquivo)){
                     eoflag--;
+                    clientes[idMinValor].codCliente = MAX_INT;
                     break;
                 }else{
                     perror("Erro na leitura do arquivo de entrada");
@@ -65,7 +66,7 @@ void particionar (FILE* arquivo, int tamanhoMemoria) {
                 }
             }
         }
-        //  Salva os clientes restantes na memória na partição de saída em ordem crescente
+        //  Salva os clientes restantes da memória na partição de saída em ordem crescente
         for(int i=0; i<unidadesEmMemoria-1; i++) {
             idMinValor = valorMinimo(clientes, unidadesEmMemoria);
             if(clientes[idMinValor].codCliente == MAX_INT)
