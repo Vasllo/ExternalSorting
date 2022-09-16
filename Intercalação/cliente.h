@@ -33,7 +33,7 @@ void imprimirCliente(Cliente *cliente) {
     cliente->codCliente, cliente->nome, cliente->dataDeNascimento);
 }
 
-//  Lê um cliente de uma posição específica em um arquivo. Posição como de um vetor.
+//  Lê um cliente de uma posição específica em um arquivo. Posição é como de um vetor.
 Cliente* lerClienteDeArquivo(FILE *arquivo, int posicao) {
     Cliente* cliente = (Cliente*) malloc(sizeof(Cliente));
     posicao = sizeof(Cliente) * posicao;
