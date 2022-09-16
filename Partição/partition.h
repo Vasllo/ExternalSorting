@@ -39,23 +39,21 @@ void particionar (FILE* arquivo, int tamanhoMemoria) {
         //  Enquanto o registro não encher, o algoritmo é executado
         while (1) {
             idMinValor = valorMinimo(clientes, unidadesEmMemoria);
-
             //  Verifica se o menor código de cliente em memória é maior que o último salvo na partição de saída, se sim, \
                 salva o cliente partição, atualiza o último valor salvo e limpa o cliente da memória
             if(clientes[idMinValor].codCliente > ultimValor) {
-                fprintCliente(particao, &(clientes[idMinValor]));
+                fwriteCliente(particao, &(clientes[idMinValor]));
                 ultimValor = clientes[idMinValor].codCliente;
-                
-            //  Se não, salva o cliente no reservatório, aumenta a contagem de posições ocupadas do reservatório \
-                e limpa o cliente da memória
+            //  Se não, salva o cliente no reservatório e aumenta a contagem de posições ocupadas do reservatório
             } else {
-                fprintCliente(reservatorio, &(clientes[idMinValor]));
+                fwriteCliente(reservatorio, &(clientes[idMinValor]));
                 posReservatorio++;
                 if(posReservatorio + 1 == unidadesEmMemoria) {
+                    clientes[idMinValor].codCliente = MAX_INT;
                     break;
                 }
             }
-            //  Após encontrar o índice com menor código de cliente e salvá-lo na partição de saída, é lida a próxima entrada \
+            //  Após encontrar o índice com menor código de cliente e salvá-lo na partição de saída ou reservatório, é lida a próxima entrada \
                 e colocada na posição deste índice no array. Se não conseguir ler, verifica se chegou ao EOF, ou se houve erro de leitura
             if(!fread((clientes+idMinValor), tamanhoStruct, 1, arquivo)) {
                 if(feof(arquivo)){
@@ -70,7 +68,9 @@ void particionar (FILE* arquivo, int tamanhoMemoria) {
         //  Salva os clientes restantes na memória na partição de saída em ordem crescente
         for(int i=0; i<unidadesEmMemoria-1; i++) {
             idMinValor = valorMinimo(clientes, unidadesEmMemoria);
-            fprintCliente(particao, &(clientes[idMinValor]));
+            if(clientes[idMinValor].codCliente == MAX_INT)
+                break;
+            fwriteCliente(particao, &(clientes[idMinValor]));
         }
 
         //  Reseta o ponteiro do reservatório, lê os dados e os armazena na memória

@@ -1,7 +1,7 @@
 #include "partition.h"
 #include <time.h>
 
-#define TAM_AMOSTRAGEM 15 // Número de elementos a serem gerados
+#define TAM_AMOSTRAGEM 20 // Número de elementos a serem gerados
 #define TAM_MEMORIA 128 //  Em bytes, a struct tem 64B
 #define NUM_NOMES 10 // Quantidade de nomes disponíveis
 #define TAM_NOMES 49 // Quantos caracteres cada nome pode ter
@@ -54,6 +54,6 @@ void criarExemplo(FILE* arquivo) {
         auxInt = rand() % TAM_AMOSTRAGEM*10;
         cliente.codCliente = auxInt;
 
-        fprintCliente(arquivo, &cliente);
+        fwriteCliente(arquivo, &cliente);
     }
 }
