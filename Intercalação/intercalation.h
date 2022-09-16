@@ -24,6 +24,41 @@ Cliente* atualizarFolha (arvoreVencedor* raiz);
 void _atualizarNos (arvoreVencedor* noh, int novoVencedor);
 void intercalar (arvoreVencedor* raiz);
 
+void print2D(arvoreVencedor *root);
+
+#define COUNT 20
+// Function to print binary tree in 2D
+// It does reverse inorder traversal
+void print2DUtil(arvoreVencedor *root, int space)
+{
+    // Base case
+    if (root == NULL)
+        return;
+ 
+    // Increase distance between levels
+    space += COUNT;
+ 
+    // Process right child first
+    print2DUtil(root->direita, space);
+ 
+    // Print current node after space
+    // count
+    printf("\n");
+    for (int i = COUNT; i < space; i++)
+        printf(" ");
+    printf("%d\n", root->vencedor);
+ 
+    // Process left child
+    print2DUtil(root->esquerda, space);
+}
+ 
+// Wrapper over print2DUtil()
+void print2D(arvoreVencedor *root)
+{
+   // Pass initial space count as 0
+   print2DUtil(root, 0);
+}
+
 // Cria um array com os ponteiros de todos arquivos
 FILE** carregarArquivos () {
     FILE** arquivos = (FILE**) malloc(sizeof(FILE*));
@@ -95,6 +130,8 @@ void montarArvore (arvoreVencedor* raiz, FILE** arquivos) {
 // < - ! - > Função para uso interno < - ! - > Função interna recursiva para construir os nós internos e retornar a árvore completa
 void _adicionarNos (arvoreVencedor* raiz, arvoreVencedor** nos, int nSubArvores) {
     int nNos = -1;
+    int j = 0;
+    int loops = -1;
 
     // Condição de parada, caso haja 2 ou menos sub-arvores
     if(nSubArvores <= 2) {
@@ -130,14 +167,16 @@ void _adicionarNos (arvoreVencedor* raiz, arvoreVencedor** nos, int nSubArvores)
     for(int i=0; i<nNos; i++) {
         novosNos[i] = (arvoreVencedor*) malloc(sizeof(arvoreVencedor)*nSubArvores);
     }
-    // Caso haja um número ímpar de sub-árvores, o último nó copia o último nó do nível inferior, subindo-o de nível. Nnos é reduzido para interromper o loop antes do último.
+    // Caso haja um número ímpar de sub-árvores, o último nó copia o último nó do nível inferior, subindo-o de nível. Uma flag marca que o array tem tamanho ímpar.
     if(nSubArvores%2 == 1) {
         novosNos[nNos-1] = nos[nSubArvores-1];
-        nNos--;
+        loops = nNos - 1;
+    } else {
+        loops = nNos;
     }
+
     // Cada nó do nível atual tem 2 sub-árvores do nível inferior alocadas nos ponteiros esq/dir e o menor código das duas é colocado como vencedor
-    for(int i=0; i<nNos; i++) {
-        int j=0;
+    for(int i=0; i<loops; i++) {
         novosNos[i]->esquerda = nos[j];
         novosNos[i]->direita = nos[j+1];
 
@@ -150,6 +189,13 @@ void _adicionarNos (arvoreVencedor* raiz, arvoreVencedor** nos, int nSubArvores)
         }
         j+=2;
     }
+
+    for(int i=0;i<nNos+1; i++){
+        printf("=============================================================================");
+        print2D(novosNos[i]);
+        printf("=============================================================================");
+    }
+
     _adicionarNos (raiz, novosNos, nNos);
 
     free(novosNos);
@@ -188,6 +234,10 @@ Cliente* atualizarFolha (arvoreVencedor* raiz) {
             perror("Erro ao ler arquivo para atualizar folha");
             exit(EXIT_FAILURE);
         case 2:
+            if(fseek(raiz->pVencedor, posPonteiroArquivo, SEEK_SET)) {
+                perror("Erro ao retornar ponteiro do arquivo vencedor [2]");
+                exit(EXIT_FAILURE);
+            }
             _atualizarNos(raiz, HIGH_VALUE);
             break;
         default:
@@ -203,15 +253,17 @@ void _atualizarNos (arvoreVencedor* noh, int novoVencedor) {
     // Condição de parada, chegar a uma folha (sem filhos)
     if(noh->direita == NULL && noh->esquerda == NULL) {
         noh->vencedor = novoVencedor;
-        if(feof(noh->pVencedor))
+        if(novoVencedor == HIGH_VALUE) {
             fclose(noh->pVencedor);
+            noh->pVencedor = NULL;
+        }
         return;
     }
 
     // Chamada recursiva caso não esteja na folha
     if(noh->esquerda->vencedor == noh->vencedor) {
         _atualizarNos(noh->esquerda, novoVencedor);
-    } else {
+    } else if(noh->direita->vencedor == noh->vencedor) {
         _atualizarNos(noh->direita, novoVencedor);
     }
 
@@ -244,6 +296,9 @@ void intercalar (arvoreVencedor* raiz) {
 
     while(raiz->vencedor != HIGH_VALUE) {
         aux = atualizarFolha(raiz);
+        printf("-----------------------------------------------------------------------------");
+        print2D(raiz);
+        printf("-----------------------------------------------------------------------------");
         fwriteCliente(saida, aux);
     }
     fclose(saida);

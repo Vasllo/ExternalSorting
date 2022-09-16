@@ -29,11 +29,11 @@ void liberarCliente(Cliente **cliente) {
 }
 
 void imprimirCliente(Cliente *cliente) {
-    printf("Dados do cliente:\nCódigo: %d\nNome: %s\nData de nascimento: %s\n" , \
+    printf("Dados do cliente:\nCódigo: %d\nNome: %s\nData de nascimento: %s\n\n" , \
     cliente->codCliente, cliente->nome, cliente->dataDeNascimento);
 }
 
-//  Lê um cliente de uma posição específica em um arquivo. Posição é como de um vetor.
+//  Lê um cliente de uma posição específica em um arquivo. Posição como de um vetor.
 Cliente* lerClienteDeArquivo(FILE *arquivo, int posicao) {
     Cliente* cliente = (Cliente*) malloc(sizeof(Cliente));
     posicao = sizeof(Cliente) * posicao;
